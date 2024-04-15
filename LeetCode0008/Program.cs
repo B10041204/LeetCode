@@ -4,24 +4,46 @@
     {
         static void Main(string[] args)
         {
+            //0
             Console.WriteLine(new Solution().MyAtoi("  +  413"));
+            //0
             Console.WriteLine(new Solution().MyAtoi(" - 4193 with words"));
+            //0
             Console.WriteLine(new Solution().MyAtoi("Hello, World!"));
+            //-42
             Console.WriteLine(new Solution().MyAtoi("-42"));
+            //0
             Console.WriteLine(new Solution().MyAtoi("+-42"));
+            //-20
             Console.WriteLine(new Solution().MyAtoi("21474836460"));
+            //2147483647
             Console.WriteLine(new Solution().MyAtoi("-2147483649"));
+            //12345678
             Console.WriteLine(new Solution().MyAtoi("0000000000012345678"));
+            //-1
             Console.WriteLine(new Solution().MyAtoi("-000000000000001"));
+            //0
             Console.WriteLine(new Solution().MyAtoi("   +0 123"));
+            //0
             Console.WriteLine(new Solution().MyAtoi("words and 987"));
+            //3
             Console.WriteLine(new Solution().MyAtoi("3.1415926"));
+            //-12
             Console.WriteLine(new Solution().MyAtoi("-0012a42"));
+            //-5
             Console.WriteLine(new Solution().MyAtoi("-5-"));
+            //123
             Console.WriteLine(new Solution().MyAtoi("123-"));
+            //21474836
             Console.WriteLine(new Solution().MyAtoi("21474836++"));
-
-
+            //
+            Console.WriteLine(new Solution().MyAtoi("-91283472332"));
+            //0
+            Console.WriteLine(new Solution().MyAtoi("00000-42a1234"));
+            //int.MaxValue
+            Console.WriteLine(new Solution().MyAtoi("9223372036854775808"));
+            //2147483647
+            Console.WriteLine(new Solution().MyAtoi("+11191657170"));
         }
     }
 
@@ -29,135 +51,81 @@
     {
         public int MyAtoi(string s)
         {
-            var arr = new List<char>();
-            var total = s.TrimEnd(' ').Split(new char[] { ' ' }).ToList();
-            var other = new List<char>();
-            foreach (var item in total)
+            var index = 0;
+            var flag = 0;
+            var start = int.MinValue;
+            var total = default(long);
+            var isContinue = false;
+            while (index < s.Length)
             {
-                for (int i = 0; i < item.Length; i++)
+                //符号
+                if (s[index] == '+' || s[index] == '-')
                 {
-                    if (other.Count > 0)
+                    if (flag == 0 && total == default(long) && start == int.MinValue)
+                    {
+                        flag = s[index] == '+' ? 1 : -1;
+                        index++;
+                        isContinue = true;
+                    }
+                    else
                     {
                         break;
                     }
-                    switch (item[i])
-                    {
-                        case '-':
-                        case '+':
-                            if (arr.FindAll(i => i == 43 || i == 45).Count() > 1)
-                            {
-                                other.Add(item[i]);
-                            }
-                            else
-                            {
-                                arr.Add(item[i]);
-                            }
-                            break;
-                        case '0':
-                        case '1':
-                        case '2':
-                        case '3':
-                        case '4':
-                        case '5':
-                        case '6':
-                        case '7':
-                        case '8':
-                        case '9':
-                        case '.':
-                            arr.Add(item[i]);
-                            break;
-                        default:
-                            other.Add(item[i]);
-                            break;
-                    }
                 }
-                if (arr.Where(i => i >= 48 && i <= 57).Count() > 0 ||
-                    arr.Where(i => i == 43 || i == 45).Count() >= 2 ||
-                     (other.Count > 0 && other.Where(i => i < 43 || i == 44 || (i > 45 && i < 48) || i > 57).Count() == other.Count()))
+                else if (s[index] != ' ' && (s[index] >= 48 && s[index] <= 57 && start != int.MinValue))
+                {
+                    total *= 10;
+                    if (total < int.MaxValue)
+                    {
+                        total += s[index] - 48;
+                    }
+                    else
+                    {
+                        return (flag == 0 || flag == 1) ? int.MaxValue : int.MinValue;
+                    }
+                    isContinue = true;
+                    index++;
+                }
+                else if (s[index] == '.')
+                {
+                    break;
+                }
+                else if (s[index] >= 48 && s[index] <= 57 && start == int.MinValue)
+                {
+                    start = index;
+                    total += s[index] - 48;
+                    index++;
+                    isContinue = true;
+                }
+                else if (s[index] == ' ')
+                {
+                    if (start != int.MinValue)
+                    {
+                        break;
+                    }
+                    if (isContinue)
+                    {
+                        break;
+                    }
+                    index++;
+                }
+                else
                 {
                     break;
                 }
             }
-            var symbols = arr.Where(i => i == 43 || i == 45);
-            if (symbols.Count() >= 1)
+            var result = total * (flag == 0 ? 1 : flag);
+            if (result > int.MaxValue)
             {
-                var index = new List<int>();
-                for (int i = 0; i < arr.Count(); i++)
-                {
-                    if ((arr[i] == 43 || arr[i] == 45))
-                    {
-                        index.Add(i);
-                    }
-                }
-                var length = index.Where(i => i != 0).FirstOrDefault();
-                arr = arr.GetRange(0, length==0?arr.Count():length);
+                return int.MaxValue;
             }
-            var str = string.Join("", arr);
-            //整数判断
-            if (str.IndexOf('.') >= 0)
+            else if (result < int.MinValue)
             {
-                str = str.Substring(0, str.IndexOf("."));
-            }
-
-            if (str.IndexOf("-") >= 0)
-            {
-                str = str.Substring(1).TrimStart('0');
-                if (str.Length > int.MinValue.ToString().Length - 1)
-                {
-                    return int.MinValue;
-                }
-                else if (str.Length == int.MinValue.ToString().Length - 1)
-                {
-                    if (int.TryParse($"-{str}", out int result))
-                    {
-                        return result;
-                    }
-                    else
-                    {
-                        return int.MinValue;
-                    }
-                }
-                else
-                {
-                    if (int.TryParse($"-{str}", out int result))
-                    {
-                        return result;
-                    }
-                    else
-                    {
-                        return default(int);
-                    }
-                }
+                return int.MinValue;
             }
             else
             {
-                str = str.TrimStart('0');
-                if (str.Length > int.MaxValue.ToString().Length)
-                {
-                    return int.MaxValue;
-                }
-                else if (str.Length == int.MaxValue.ToString().Length)
-                {
-                    if (int.TryParse(str, out int result))
-                    {
-                        return result;
-                    }
-                    else
-                    {
-                        return int.MaxValue;
-                    }
-                }
-                else
-                {
-                    if (int.TryParse(str, out int result))
-                    {
-                        return result;
-                    }
-                    else
-                    {
-                        return default(int);
-                    }
-                }
+                return (int)result;
             }
         }
     }
