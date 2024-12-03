@@ -140,7 +140,7 @@
                         {
                             all.Insert(current + 1, nums2[index++]);
                         }
-                        else if(all[current]  snums2[index])
+                        else
                         {
                             all.Insert(current, nums2[index++]);
                         }
